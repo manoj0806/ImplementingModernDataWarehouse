@@ -1,0 +1,9 @@
+{
+	"name": "RetailWarehouseADF",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "4de231fd-c130-4739-9284-443adb6b8d74",
+		"tenantId": "5d1524c9-8ae4-4554-b2ad-90292987a058"
+	}
+}

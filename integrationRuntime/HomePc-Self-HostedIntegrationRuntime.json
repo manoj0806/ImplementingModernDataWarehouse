@@ -1,0 +1,7 @@
+{
+	"name": "HomePc-Self-HostedIntegrationRuntime",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "This local device to be represented as an OnPrem Device."
+	}
+}

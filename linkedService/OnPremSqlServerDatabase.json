@@ -1,0 +1,24 @@
+{
+	"name": "OnPremSqlServerDatabase",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=True;Data Source=LAPTOP-SVMTPL4C\\SQLEXPRESS;Initial Catalog=OnPremRetail",
+			"userName": "grmanojbabu8@gmail.com",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "OnPremDevicePassword"
+			}
+		},
+		"connectVia": {
+			"referenceName": "HomePc-Self-HostedIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
