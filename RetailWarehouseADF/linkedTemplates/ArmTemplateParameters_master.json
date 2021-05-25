@@ -5,8 +5,14 @@
 		"factoryName": {
 			"value": "RetailWarehouseADF"
 		},
+		"AzureDataLakeStaging_accountKey": {
+			"value": ""
+		},
 		"OnPremSqlServerDatabase_connectionString": {
 			"value": ""
+		},
+		"AzureDataLakeStaging_properties_typeProperties_url": {
+			"value": "https://retailstaging.dfs.core.windows.net"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://OnPremDevices.vault.azure.net/"
