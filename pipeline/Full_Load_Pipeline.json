@@ -158,7 +158,7 @@
 				"userProperties": [
 					{
 						"name": "Source",
-						"value": "dbo.Customer"
+						"value": "dbo.Transactions"
 					},
 					{
 						"name": "Destination",
@@ -188,72 +188,120 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "customer_Id",
+									"name": "transaction_id",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "customer_Id",
+									"name": "transaction_id",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "DOB",
+									"name": "cust_id",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "DOB",
+									"name": "cust_id",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "Gender",
+									"name": "tran_date",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "Gender",
+									"name": "tran_date",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "city_code",
+									"name": "prod_subcat_code",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "city_code",
+									"name": "prod_subcat_code",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "Customer_Name",
+									"name": "prod_cat_code",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "Customer_Name",
+									"name": "prod_cat_code",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "Created_Modified_Date",
+									"name": "Qty",
 									"type": "String",
 									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "Created_Modified_Date",
+									"name": "Qty",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Rate",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Rate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Tax",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Tax",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "total_amt",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "total_amt",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Store_type",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Store_type",
 									"type": "String",
 									"physicalType": "String"
 								}
@@ -336,72 +384,48 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "customer_Id",
+									"name": "prod_cat_code",
 									"type": "String",
-									"physicalType": "varchar"
+									"physicalType": "String"
 								},
 								"sink": {
-									"name": "customer_Id",
+									"name": "prod_cat_code",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "DOB",
+									"name": "prod_cat",
 									"type": "String",
-									"physicalType": "varchar"
+									"physicalType": "String"
 								},
 								"sink": {
-									"name": "DOB",
+									"name": "prod_cat",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "Gender",
+									"name": "prod_sub_cat_code",
 									"type": "String",
-									"physicalType": "varchar"
+									"physicalType": "String"
 								},
 								"sink": {
-									"name": "Gender",
+									"name": "prod_sub_cat_code",
 									"type": "String",
 									"physicalType": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "city_code",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "city_code",
+									"name": "prod_subcat",
 									"type": "String",
 									"physicalType": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "Customer_Name",
-									"type": "String",
-									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "Customer_Name",
-									"type": "String",
-									"physicalType": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "Created_Modified_Date",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "Created_Modified_Date",
+									"name": "prod_subcat",
 									"type": "String",
 									"physicalType": "String"
 								}
