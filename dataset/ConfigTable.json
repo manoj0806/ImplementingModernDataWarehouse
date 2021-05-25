@@ -1,0 +1,59 @@
+{
+	"name": "ConfigTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlRetailDataWarehouse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Source",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Source_Table",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Dest_Table",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Columns",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Watermark_Column",
+				"type": "varchar"
+			},
+			{
+				"name": "Watermark_Value",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Enabled",
+				"type": "bit"
+			},
+			{
+				"name": "Load_Flag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Status",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Comment",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "config"
+		}
+	}
+}
