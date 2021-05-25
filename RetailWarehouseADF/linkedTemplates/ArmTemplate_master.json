@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStaging'"
 		},
+		"AzureSqlRetailDataWarehouse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlRetailDataWarehouse'"
+		},
 		"OnPremSqlServerDatabase_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'OnPremSqlServerDatabase'"
@@ -64,6 +68,9 @@
 					},
 					"AzureDataLakeStaging_accountKey": {
 						"value": "[parameters('AzureDataLakeStaging_accountKey')]"
+					},
+					"AzureSqlRetailDataWarehouse_connectionString": {
+						"value": "[parameters('AzureSqlRetailDataWarehouse_connectionString')]"
 					},
 					"OnPremSqlServerDatabase_connectionString": {
 						"value": "[parameters('OnPremSqlServerDatabase_connectionString')]"

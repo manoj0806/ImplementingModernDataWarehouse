@@ -8,6 +8,9 @@
 		"AzureDataLakeStaging_accountKey": {
 			"value": ""
 		},
+		"AzureSqlRetailDataWarehouse_connectionString": {
+			"value": ""
+		},
 		"OnPremSqlServerDatabase_connectionString": {
 			"value": ""
 		},
