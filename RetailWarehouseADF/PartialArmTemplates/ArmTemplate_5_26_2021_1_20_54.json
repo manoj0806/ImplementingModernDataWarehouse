@@ -6,34 +6,6 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "RetailWarehouseADF"
-		},
-		"AzureDataLakeStaging_accountKey": {
-			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStaging'"
-		},
-		"OnPremSqlServerDatabase_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'OnPremSqlServerDatabase'"
-		},
-		"AzureDataLakeStaging_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://retailstaging.dfs.core.windows.net"
-		},
-		"AzureKeyVault1_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://OnPremDevices.vault.azure.net/"
-		},
-		"FlatFileLocalPc_properties_typeProperties_host": {
-			"type": "string",
-			"defaultValue": "\\\\LAPTOP-SVMTPL4C\\AzureLoadFlatSource"
-		},
-		"FlatFileLocalPc_properties_typeProperties_userId": {
-			"type": "string",
-			"defaultValue": "grmanojbabu8@gmail.com"
-		},
-		"OnPremSqlServerDatabase_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "grmanojbabu8@gmail.com"
 		}
 	},
 	"variables": {
@@ -171,15 +143,13 @@
 						"inputs": [
 							{
 								"referenceName": "CustomerTableOnprem",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -315,15 +285,13 @@
 						"inputs": [
 							{
 								"referenceName": "TransactionsTableOnPrem",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -465,15 +433,13 @@
 						"inputs": [
 							{
 								"referenceName": "ProductCatSubCat",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					}
@@ -481,100 +447,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/CustomerTableOnprem')]",
-				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]",
-				"[concat(variables('factoryId'), '/datasets/TransactionsTableOnPrem')]",
-				"[concat(variables('factoryId'), '/datasets/ProductCatSubCat')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/CustomerTableOnprem')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "OnPremSqlServerDatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [
-					{
-						"name": "customer_Id",
-						"type": "varchar"
-					},
-					{
-						"name": "DOB",
-						"type": "varchar"
-					},
-					{
-						"name": "Gender",
-						"type": "varchar"
-					},
-					{
-						"name": "city_code",
-						"type": "varchar"
-					},
-					{
-						"name": "Customer_Name",
-						"type": "varchar"
-					},
-					{
-						"name": "Created_Modified_Date",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Customer"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/OnPremSqlServerDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ProductCatSubCat')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "FlatFileLocalPc",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"fileName": "Product-Category-Subcategory.csv"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "prod_cat_code",
-						"type": "String"
-					},
-					{
-						"name": "prod_cat",
-						"type": "String"
-					},
-					{
-						"name": "prod_sub_cat_code",
-						"type": "String"
-					},
-					{
-						"name": "prod_subcat",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/FlatFileLocalPc')]"
+				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]"
 			]
 		},
 		{
@@ -599,169 +472,6 @@
 					"quoteChar": "\""
 				},
 				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TransactionsTableOnPrem')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "OnPremSqlServerDatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [
-					{
-						"name": "transaction_id",
-						"type": "varchar"
-					},
-					{
-						"name": "cust_id",
-						"type": "varchar"
-					},
-					{
-						"name": "tran_date",
-						"type": "varchar"
-					},
-					{
-						"name": "prod_subcat_code",
-						"type": "varchar"
-					},
-					{
-						"name": "prod_cat_code",
-						"type": "varchar"
-					},
-					{
-						"name": "Qty",
-						"type": "varchar"
-					},
-					{
-						"name": "Rate",
-						"type": "varchar"
-					},
-					{
-						"name": "Tax",
-						"type": "varchar"
-					},
-					{
-						"name": "total_amt",
-						"type": "varchar"
-					},
-					{
-						"name": "Store_type",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Transactions"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/OnPremSqlServerDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStaging')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobFS",
-				"typeProperties": {
-					"url": "[parameters('AzureDataLakeStaging_properties_typeProperties_url')]",
-					"accountKey": {
-						"type": "SecureString",
-						"value": "[parameters('AzureDataLakeStaging_accountKey')]"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureKeyVault1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureKeyVault",
-				"typeProperties": {
-					"baseUrl": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/FlatFileLocalPc')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "FileServer",
-				"typeProperties": {
-					"host": "[parameters('FlatFileLocalPc_properties_typeProperties_host')]",
-					"userId": "[parameters('FlatFileLocalPc_properties_typeProperties_userId')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "AzureKeyVault1",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "OnPremDevicePassword"
-					}
-				},
-				"connectVia": {
-					"referenceName": "HomePc-Self-HostedIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/HomePc-Self-HostedIntegrationRuntime')]",
-				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OnPremSqlServerDatabase')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "SqlServer",
-				"typeProperties": {
-					"connectionString": "[parameters('OnPremSqlServerDatabase_connectionString')]",
-					"userName": "[parameters('OnPremSqlServerDatabase_properties_typeProperties_userName')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "AzureKeyVault1",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "OnPremDevicePassword"
-					}
-				},
-				"connectVia": {
-					"referenceName": "HomePc-Self-HostedIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/HomePc-Self-HostedIntegrationRuntime')]",
-				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/HomePc-Self-HostedIntegrationRuntime')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"description": "This local device to be represented as an OnPrem Device.",
-				"typeProperties": {}
 			},
 			"dependsOn": []
 		}
