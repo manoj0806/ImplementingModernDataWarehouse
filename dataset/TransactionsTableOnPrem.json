@@ -1,0 +1,57 @@
+{
+	"name": "TransactionsTableOnPrem",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnPremSqlServerDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "transaction_id",
+				"type": "varchar"
+			},
+			{
+				"name": "cust_id",
+				"type": "varchar"
+			},
+			{
+				"name": "tran_date",
+				"type": "varchar"
+			},
+			{
+				"name": "prod_subcat_code",
+				"type": "varchar"
+			},
+			{
+				"name": "prod_cat_code",
+				"type": "varchar"
+			},
+			{
+				"name": "Qty",
+				"type": "varchar"
+			},
+			{
+				"name": "Rate",
+				"type": "varchar"
+			},
+			{
+				"name": "Tax",
+				"type": "varchar"
+			},
+			{
+				"name": "total_amt",
+				"type": "varchar"
+			},
+			{
+				"name": "Store_type",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Transactions"
+		}
+	}
+}
