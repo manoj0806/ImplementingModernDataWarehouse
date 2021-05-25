@@ -1,0 +1,19 @@
+{
+	"name": "AzureSqlRetailDataWarehouse",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=retail-dw.database.windows.net;Initial Catalog=RetailDataWarehouse;User ID=manoj0806",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "OnPremDevicePassword"
+			}
+		}
+	}
+}
