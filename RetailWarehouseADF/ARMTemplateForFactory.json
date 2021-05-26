@@ -152,6 +152,66 @@
 											"value": "@bool(equals(item().Load_Flag,'Incremental'))",
 											"type": "Expression"
 										},
+										"ifFalseActivities": [
+											{
+												"name": "CopyFull Load",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "IncrementalSQLRetailOnprem",
+														"type": "DatasetReference",
+														"parameters": {
+															"TableName": "@{item().Source_Table}"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "IncrementalSinkDataLake",
+														"type": "DatasetReference",
+														"parameters": {
+															"StagingFileName": "@{item().Dest_Table}"
+														}
+													}
+												]
+											}
+										],
 										"ifTrueActivities": [
 											{
 												"name": "get max of Last MaxUpdateDate Config",
@@ -204,7 +264,7 @@
 												"userProperties": [
 													{
 														"name": "Source",
-														"value": "dbo.@{item().Watermark_Column}"
+														"value": "dbo.@{concat('substring(''', item().Source_Table, ''',4,string(length(''', item().Source_Table, ''')))')}"
 													},
 													{
 														"name": "Destination",
@@ -255,6 +315,58 @@
 														}
 													}
 												]
+											},
+											{
+												"name": "Update Config Watermark",
+												"description": "Update config Tables' Watermark Values based on the last modified date of records in tables staged to ADLS.",
+												"type": "ExecuteDataFlow",
+												"dependsOn": [
+													{
+														"activity": "Copy Delta load from Tables to ADLS",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataflow": {
+														"referenceName": "UpdateConfigLastModDate",
+														"type": "DataFlowReference",
+														"parameters": {
+															"SourceTable": {
+																"value": "'@string('@{item().Dest_Table}')'",
+																"type": "Expression"
+															},
+															"WaterMarkField": {
+																"value": "'@string('@{item().Watermark_Column}')'",
+																"type": "Expression"
+															}
+														},
+														"datasetParameters": {
+															"source1": {
+																"StagingFileName": "@{item().Dest_Table}"
+															},
+															"sink1": {}
+														}
+													},
+													"staging": {},
+													"compute": {
+														"coreCount": 8,
+														"computeType": "General"
+													},
+													"traceLevel": "None",
+													"cacheSinks": {
+														"firstRowOnly": true
+													}
+												}
 											}
 										]
 									}
@@ -268,7 +380,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ConfigTable')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
-				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]"
+				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]",
+				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
 			]
 		},
 		{
@@ -859,6 +972,67 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DataFlowStagingInputs')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"StagingFileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().StagingFileName",
+							"type": "Expression"
+						},
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customer_Id",
+						"type": "String"
+					},
+					{
+						"name": "DOB",
+						"type": "String"
+					},
+					{
+						"name": "Gender",
+						"type": "String"
+					},
+					{
+						"name": "city_code",
+						"type": "String"
+					},
+					{
+						"name": "Customer_Name",
+						"type": "String"
+					},
+					{
+						"name": "Created_Modified_Date",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IncrementalSQLRetailOnprem')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1209,6 +1383,50 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/UpdateConfigLastModDate')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DataFlowStagingInputs",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ConfigTable",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Aggregate1"
+						},
+						{
+							"name": "DerivedColumn1"
+						},
+						{
+							"name": "AlterRow1"
+						}
+					],
+					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nsource1 aggregate(Max_Created_Modified_Date = iif(toString($SourceTable)=='Customer.csv',\r\nmax(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy HH:mm')),max(toTimestamp(byName($WaterMarkField),\r\n'dd-MM-yyyy')))) ~> Aggregate1\nAggregate1 derive(Dest_Table = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DataFlowStagingInputs')]",
+				"[concat(variables('factoryId'), '/datasets/ConfigTable')]"
+			]
 		}
 	]
 }
