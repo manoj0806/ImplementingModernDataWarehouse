@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "DataFlowStagingInputs",
+						"referenceName": "IncrementalSinkDataLake",
 						"type": "DatasetReference"
 					},
 					"name": "source1"
@@ -32,7 +32,7 @@
 					"name": "AlterRow1"
 				}
 			],
-			"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nsource1 aggregate(Max_Created_Modified_Date = iif(toString($SourceTable)=='Customer.csv',\r\nmax(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy HH:mm')),max(toTimestamp(byName($WaterMarkField),\r\n'dd-MM-yyyy')))) ~> Aggregate1\nAggregate1 derive(Dest_Table = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:true,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['Dest_Table'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
+			"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tprod_cat_code as string,\n\t\tprod_cat as string,\n\t\tprod_sub_cat_code as string,\n\t\tprod_subcat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:['Customer.csv']) ~> source1\nsource1 aggregate(Max_Created_Modified_Date = iif(toString($SourceTable)=='Customer.csv',\r\nmax(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy HH:mm')),max(toTimestamp(byName($WaterMarkField),\r\n'dd-MM-yyyy')))) ~> Aggregate1\nAggregate1 derive(Dest_Table = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:true,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['Dest_Table'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
 		}
 	}
 }
