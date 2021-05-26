@@ -1,0 +1,12 @@
+{
+	"name": "IncrementalSQLRetailOnprem",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnPremSqlServerDatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

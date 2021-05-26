@@ -1,0 +1,48 @@
+{
+	"name": "IncrementalSinkDataLake",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStaging",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"StagingFileName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().StagingFileName",
+					"type": "Expression"
+				},
+				"fileSystem": "staging"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "prod_cat_code",
+				"type": "String"
+			},
+			{
+				"name": "prod_cat",
+				"type": "String"
+			},
+			{
+				"name": "prod_sub_cat_code",
+				"type": "String"
+			},
+			{
+				"name": "prod_subcat",
+				"type": "String"
+			}
+		]
+	}
+}
