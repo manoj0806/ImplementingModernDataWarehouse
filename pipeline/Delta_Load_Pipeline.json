@@ -134,7 +134,7 @@
 										}
 									},
 									{
-										"name": "Copy data1",
+										"name": "Copy Delta load from Tables to ADLS",
 										"type": "Copy",
 										"dependsOn": [
 											{
@@ -151,7 +151,16 @@
 											"secureOutput": false,
 											"secureInput": false
 										},
-										"userProperties": [],
+										"userProperties": [
+											{
+												"name": "Source",
+												"value": "dbo.@{item().Watermark_Column}"
+											},
+											{
+												"name": "Destination",
+												"value": "staging//@{item().Dest_Table}"
+											}
+										],
 										"typeProperties": {
 											"source": {
 												"type": "SqlServerSource",
@@ -161,6 +170,17 @@
 												},
 												"queryTimeout": "02:00:00",
 												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
 											},
 											"enableStaging": false
 										},
@@ -173,6 +193,15 @@
 														"value": "@{item().Watermark_Column}",
 														"type": "Expression"
 													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "IncrementalSinkDataLake",
+												"type": "DatasetReference",
+												"parameters": {
+													"StagingFileName": "@{item().Dest_Table}"
 												}
 											}
 										]
