@@ -10,6 +10,9 @@
 				"type": "String"
 			}
 		},
+		"folder": {
+			"name": "ADLS_Staging"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
