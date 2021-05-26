@@ -292,11 +292,11 @@
 												"type": "DataFlowReference",
 												"parameters": {
 													"SourceTable": {
-														"value": "'@{item().Dest_Table}'",
+														"value": "'substring('string('@{item().Dest_Table}')',1,length('string('@{item().Dest_Table}')')-1)'",
 														"type": "Expression"
 													},
 													"WaterMarkField": {
-														"value": "'@{item().Watermark_Column}'",
+														"value": "'substring('string('@{item().Watermark_Column}')',1,length('string('@{item().Dest_Table}')')-1)'",
 														"type": "Expression"
 													}
 												},
