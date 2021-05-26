@@ -99,6 +99,9 @@
 						"type": "String"
 					}
 				},
+				"folder": {
+					"name": "ADLS_Staging"
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
@@ -146,6 +149,9 @@
 				"linkedServiceName": {
 					"referenceName": "AzureDataLakeStaging",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ADLS_Staging"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -255,6 +261,9 @@
 					"referenceName": "AzureSqlRetailDataWarehouse",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [
@@ -319,6 +328,9 @@
 					"referenceName": "OnPremSqlServerDatabase",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "OnPremTables"
+				},
 				"annotations": [],
 				"type": "SqlServerTable",
 				"schema": [
@@ -370,6 +382,9 @@
 						"type": "String"
 					}
 				},
+				"folder": {
+					"name": "OnPremTables"
+				},
 				"annotations": [],
 				"type": "SqlServerTable",
 				"schema": [],
@@ -393,6 +408,9 @@
 				"linkedServiceName": {
 					"referenceName": "FlatFileLocalPc",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "FileSystemTables"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -437,6 +455,9 @@
 				"linkedServiceName": {
 					"referenceName": "OnPremSqlServerDatabase",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "OnPremTables"
 				},
 				"annotations": [],
 				"type": "SqlServerTable",
