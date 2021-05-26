@@ -488,9 +488,11 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "Staging_All_Data",
+											"referenceName": "IncrementalSinkDataLake",
 											"type": "DatasetReference",
-											"parameters": {}
+											"parameters": {
+												"StagingFileName": "@item().Dest_Table"
+											}
 										}
 									]
 								},
@@ -517,7 +519,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "update dbo.config \nset Status = 'Success' where Dest_Table = '@item().Dest_Table'\n\nselect 1",
+												"value": "update dbo.config \nset Status = 'Success' where Dest_Table = @item().Dest_Table;",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
@@ -539,10 +541,199 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ConfigTable')]",
 				"[concat(variables('factoryId'), '/datasets/AllFlatFiles')]",
-				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]",
-				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]",
+				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
 				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Delta_Load_Pipeline_copy1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Config",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select * from dbo.config where Enabled=1;",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ConfigTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Filter_FlatFiles",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Config",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Config').output.value",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@equals(item().Source,'FileSystem')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "ForEach-FlatFiles",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Filter_FlatFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Filter_FlatFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "AllFlatFiles",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": {
+													"value": "@item().Source_Table",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "IncrementalSinkDataLake",
+											"type": "DatasetReference",
+											"parameters": {
+												"StagingFileName": "@item().Dest_Table"
+											}
+										}
+									]
+								},
+								{
+									"name": "update cfg status_copy1",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Copy data1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "update dbo.config \nset Status = 'Success' where Dest_Table = @item().Dest_Table;",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "ConfigTable",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ConfigTable')]",
+				"[concat(variables('factoryId'), '/datasets/AllFlatFiles')]",
+				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]"
 			]
 		},
 		{
