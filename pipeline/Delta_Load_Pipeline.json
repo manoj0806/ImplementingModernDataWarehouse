@@ -291,8 +291,14 @@
 												"referenceName": "UpdateConfigLastModDate",
 												"type": "DataFlowReference",
 												"parameters": {
-													"SourceTable": "@{item().Dest_Table}",
-													"WaterMarkField": "@{item().Watermark_Column}"
+													"SourceTable": {
+														"value": "'@string('@{item().Dest_Table}')'",
+														"type": "Expression"
+													},
+													"WaterMarkField": {
+														"value": "'@string('@{item().Watermark_Column}')'",
+														"type": "Expression"
+													}
 												},
 												"datasetParameters": {
 													"source1": {
