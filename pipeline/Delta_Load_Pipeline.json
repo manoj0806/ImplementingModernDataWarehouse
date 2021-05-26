@@ -132,6 +132,50 @@
 											},
 											"firstRowOnly": false
 										}
+									},
+									{
+										"name": "Copy data1",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "get max of Last MaxUpdateDate Config",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "select * from @{item().Source_Table}\nwhere \nconvert(datetime,@{item().Watermark_Column},105) >\nconvert(datetime,substring(\nreplace('@{activity('get max of Last MaxUpdateDate Config').output.firstRow.Watermark_Value}',\n'T',' '),0,20),120)",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "IncrementalSQLRetailOnprem",
+												"type": "DatasetReference",
+												"parameters": {
+													"TableName": {
+														"value": "@{item().Watermark_Column}",
+														"type": "Expression"
+													}
+												}
+											}
+										]
 									}
 								]
 							}
