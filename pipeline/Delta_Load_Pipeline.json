@@ -190,7 +190,7 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"TableName": {
-														"value": "substring('@{item().Source_Table}',4,string(length('@{item().Source_Table')))",
+														"value": "substring('@{item().Source_Table}',4,string(length('@{item().Source_Table}')))",
 														"type": "Expression"
 													}
 												}
