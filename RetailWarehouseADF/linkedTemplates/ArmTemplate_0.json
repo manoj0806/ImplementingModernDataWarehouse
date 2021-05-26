@@ -1121,7 +1121,7 @@
 							"name": "AlterRow1"
 						}
 					],
-					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nsource1 aggregate(Max_Created_Modified_Date = iif(toString($SourceTable)=='Customer.csv',\r\nmax(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy HH:mm')),max(toTimestamp(byName($WaterMarkField),\r\n'dd-MM-yyyy')))) ~> Aggregate1\nAggregate1 derive(Dest_Table = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:true,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['Dest_Table'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
+					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nsource1 aggregate(Max_Created_Modified_Date = iif(toString($SourceTable)=='Customer.csv',\r\nmax(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy HH:mm')),max(toTimestamp(toString(byName($WaterMarkField)),\r\n'dd-MM-yyyy')))) ~> Aggregate1\nAggregate1 derive(Dest_Table = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
 				}
 			},
 			"dependsOn": [
@@ -1407,9 +1407,9 @@
 												"type": "ExecuteDataFlow",
 												"dependsOn": [
 													{
-														"activity": "Copy Delta load from Tables to ADLS",
+														"activity": "Set Watermark_Filed",
 														"dependencyConditions": [
-															"Succeeded"
+															"Completed"
 														]
 													}
 												],
@@ -1427,11 +1427,11 @@
 														"type": "DataFlowReference",
 														"parameters": {
 															"SourceTable": {
-																"value": "'substring('string('@{item().Dest_Table}')',1,length('string('@{item().Dest_Table}')')-1)'",
+																"value": "'@{variables('sourceFile')}'",
 																"type": "Expression"
 															},
 															"WaterMarkField": {
-																"value": "'substring('string('@{item().Watermark_Column}')',1,length('string('@{item().Dest_Table}')')-1)'",
+																"value": "'@{variables('WatermarkField')}'",
 																"type": "Expression"
 															}
 														},
@@ -1450,6 +1450,46 @@
 													"traceLevel": "None",
 													"cacheSinks": {
 														"firstRowOnly": true
+													}
+												}
+											},
+											{
+												"name": "Set SourceFile",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "Copy Delta load from Tables to ADLS",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "sourceFile",
+													"value": {
+														"value": "@{item().Dest_Table}",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "Set Watermark_Filed",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "Set SourceFile",
+														"dependencyConditions": [
+															"Completed"
+														]
+													}
+												],
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "WatermarkField",
+													"value": {
+														"value": "@{item().Watermark_Column}",
+														"type": "Expression"
 													}
 												}
 											}
@@ -1621,6 +1661,14 @@
 						}
 					}
 				],
+				"variables": {
+					"sourceFile": {
+						"type": "String"
+					},
+					"WatermarkField": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
