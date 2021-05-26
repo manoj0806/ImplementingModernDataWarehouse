@@ -314,6 +314,41 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AllFlatFiles')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FlatFileLocalPc",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "FileServerLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/FlatFileLocalPc')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ConfigTable')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1168,7 +1203,7 @@
 						}
 					},
 					{
-						"name": "ForEach1",
+						"name": "ForEach-SQL tables",
 						"type": "ForEach",
 						"dependsOn": [
 							{
@@ -1453,12 +1488,137 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "ForEach-FlatFiles",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Filter_FlatFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Filter_FlatFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "AllFlatFiles",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": {
+													"value": "@item().Source_Table",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Staging_All_Data",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								},
+								{
+									"name": "update cfg status_copy1",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Copy data1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "update dbo.config \nset Status = 'Success' where Dest_Table = '@item().Dest_Table'\n\nselect 1",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "ConfigTable",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								}
+							]
+						}
 					}
 				],
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ConfigTable')]",
+				"[concat(variables('factoryId'), '/datasets/AllFlatFiles')]",
+				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]",
 				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
