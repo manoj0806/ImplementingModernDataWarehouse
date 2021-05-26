@@ -103,6 +103,66 @@
 									"value": "@bool(equals(item().Load_Flag,'Incremental'))",
 									"type": "Expression"
 								},
+								"ifFalseActivities": [
+									{
+										"name": "CopyFull Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "IncrementalSQLRetailOnprem",
+												"type": "DatasetReference",
+												"parameters": {
+													"TableName": "@{item().Source_Table}"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "IncrementalSinkDataLake",
+												"type": "DatasetReference",
+												"parameters": {
+													"StagingFileName": "@{item().Dest_Table}"
+												}
+											}
+										]
+									}
+								],
 								"ifTrueActivities": [
 									{
 										"name": "get max of Last MaxUpdateDate Config",
@@ -154,7 +214,7 @@
 										"userProperties": [
 											{
 												"name": "Source",
-												"value": "dbo.@{item().Watermark_Column}"
+												"value": "dbo.@{concat('substring(''', item().Source_Table, ''',4,string(length(''', item().Source_Table, ''')))')}"
 											},
 											{
 												"name": "Destination",
@@ -205,6 +265,50 @@
 												}
 											}
 										]
+									},
+									{
+										"name": "Update Config Watermark",
+										"description": "Update config Tables' Watermark Values based on the last modified date of records in tables staged to ADLS.",
+										"type": "ExecuteDataFlow",
+										"dependsOn": [
+											{
+												"activity": "Copy Delta load from Tables to ADLS",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataflow": {
+												"referenceName": "UpdateConfigLastModDate",
+												"type": "DataFlowReference",
+												"parameters": {
+													"SourceTable": "@{item().Dest_Table}",
+													"WaterMarkField": "@{item().Watermark_Column}"
+												},
+												"datasetParameters": {
+													"source1": {
+														"StagingFileName": "@{item().Dest_Table}"
+													}
+												}
+											},
+											"compute": {
+												"coreCount": 8,
+												"computeType": "General"
+											},
+											"traceLevel": "None",
+											"cacheSinks": {
+												"firstRowOnly": true
+											}
+										}
 									}
 								]
 							}
