@@ -160,7 +160,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "update dbo.config \nset Status = 'Success' where Dest_Table = '@{item().Dest_Table}';",
+										"value": "update dbo.config \nset Status = 'Success' where Dest_Table = '@{item().Dest_Table}';\nselect 1",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
