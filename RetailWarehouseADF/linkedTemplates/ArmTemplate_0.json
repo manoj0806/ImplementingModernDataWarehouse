@@ -615,7 +615,8 @@
 														"referenceName": "ConfigTable",
 														"type": "DatasetReference",
 														"parameters": {}
-													}
+													},
+													"firstRowOnly": false
 												}
 											},
 											{
