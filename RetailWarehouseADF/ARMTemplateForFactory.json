@@ -342,11 +342,11 @@
 														"type": "DataFlowReference",
 														"parameters": {
 															"SourceTable": {
-																"value": "'@{item().Dest_Table}'",
+																"value": "'substring('string('@{item().Dest_Table}')',1,length('string('@{item().Dest_Table}')')-1)'",
 																"type": "Expression"
 															},
 															"WaterMarkField": {
-																"value": "'@{item().Watermark_Column}'",
+																"value": "'substring('string('@{item().Watermark_Column}')',1,length('string('@{item().Dest_Table}')')-1)'",
 																"type": "Expression"
 															}
 														},
@@ -1018,60 +1018,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Data flow1",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "1.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "UpdateConfigLastModDate",
-								"type": "DataFlowReference",
-								"parameters": {
-									"SourceTable": {
-										"value": "@string('Customer.csv')",
-										"type": "Expression"
-									},
-									"WaterMarkField": {
-										"value": "@string('created_modified_date')",
-										"type": "Expression"
-									}
-								},
-								"datasetParameters": {
-									"source1": {
-										"StagingFileName": "Customer.csv"
-									},
-									"sink1": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/AllFlatFiles')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1084,6 +1030,9 @@
 					"FileName": {
 						"type": "String"
 					}
+				},
+				"folder": {
+					"name": "FileSystemTables"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -1235,6 +1184,9 @@
 					"StagingFileName": {
 						"type": "String"
 					}
+				},
+				"folder": {
+					"name": "ADLS_Staging"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
