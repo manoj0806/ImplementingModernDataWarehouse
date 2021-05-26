@@ -1,0 +1,17 @@
+{
+	"name": "trigger1",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/staging/blobs/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/85b0bfdb-ad5a-424b-8219-fc64a2ad096c/resourceGroups/RetailDataWarehouse/providers/Microsoft.Storage/storageAccounts/retailstaging",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
