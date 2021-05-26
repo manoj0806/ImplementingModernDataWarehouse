@@ -292,11 +292,11 @@
 												"type": "DataFlowReference",
 												"parameters": {
 													"SourceTable": {
-														"value": "'substring('string('@{item().Dest_Table}')',1,length('string('@{item().Dest_Table}')')-1)'",
+														"value": "'@{pipeline().parameters.DataFlowSourceTable}'",
 														"type": "Expression"
 													},
 													"WaterMarkField": {
-														"value": "'substring('string('@{item().Watermark_Column}')',1,length('string('@{item().Dest_Table}')')-1)'",
+														"value": "'@{pipeline().parameters.DataFlowSourceTable}'",
 														"type": "Expression"
 													}
 												},
@@ -482,6 +482,16 @@
 				}
 			}
 		],
+		"parameters": {
+			"DataFlowSourceTable": {
+				"type": "string",
+				"defaultValue": "@item().Dest_Table"
+			},
+			"DatFlowWaterMarkFiled": {
+				"type": "string",
+				"defaultValue": "@item().Watermark_Value"
+			}
+		},
 		"annotations": []
 	}
 }
