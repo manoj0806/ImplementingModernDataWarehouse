@@ -151,7 +151,117 @@
 										"expression": {
 											"value": "@bool(equals(item().Load_Flag,'Incremental'))",
 											"type": "Expression"
-										}
+										},
+										"ifTrueActivities": [
+											{
+												"name": "get max of Last MaxUpdateDate Config",
+												"type": "Lookup",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "select Watermark_Value from dbo.config where Source_Table like '@{item().Source_Table}'",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"dataset": {
+														"referenceName": "ConfigTable",
+														"type": "DatasetReference",
+														"parameters": {}
+													}
+												}
+											},
+											{
+												"name": "Copy Incremental DB to DataLakeStaging",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "get max of Last MaxUpdateDate Config",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "."
+													},
+													{
+														"name": "Destination",
+														"value": "staging//@{item().Dest_Table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"sqlReaderQuery": {
+															"value": "select *  from @{item().Source_Table}\nwhere \nconvert(datetime,@{item().Watermark_Column},105) >\nconvert(datetime,substring(\nreplace('activity('get max of Last MaxUpdateDate Config').output.firstRow.Watermark_Value}',\n'T',''),0,20),120)",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "IncrementalSQLRetailOnprem",
+														"type": "DatasetReference",
+														"parameters": {}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "IncrementalSinkDataLake",
+														"type": "DatasetReference",
+														"parameters": {
+															"StagingFileName": {
+																"value": "@{item().Dest_Table}",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
 									}
 								}
 							]
@@ -161,7 +271,9 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ConfigTable')]"
+				"[concat(variables('factoryId'), '/datasets/ConfigTable')]",
+				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
+				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]"
 			]
 		},
 		{
@@ -743,6 +855,77 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/OnPremSqlServerDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IncrementalSQLRetailOnprem')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "OnPremSqlServerDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/OnPremSqlServerDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IncrementalSinkDataLake')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"StagingFileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().StagingFileName",
+							"type": "Expression"
+						},
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "prod_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_cat",
+						"type": "String"
+					},
+					{
+						"name": "prod_sub_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_subcat",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
 			]
 		},
 		{
