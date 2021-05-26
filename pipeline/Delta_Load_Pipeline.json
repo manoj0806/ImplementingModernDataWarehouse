@@ -272,9 +272,9 @@
 										"type": "ExecuteDataFlow",
 										"dependsOn": [
 											{
-												"activity": "Copy Delta load from Tables to ADLS",
+												"activity": "Set Watermark_Filed",
 												"dependencyConditions": [
-													"Succeeded"
+													"Completed"
 												]
 											}
 										],
@@ -292,11 +292,11 @@
 												"type": "DataFlowReference",
 												"parameters": {
 													"SourceTable": {
-														"value": "'@{pipeline().parameters.DataFlowSourceTable}'",
+														"value": "'@{variables('sourceFile')}'",
 														"type": "Expression"
 													},
 													"WaterMarkField": {
-														"value": "'@{pipeline().parameters.DataFlowSourceTable}'",
+														"value": "'@{variables('WatermarkField')}'",
 														"type": "Expression"
 													}
 												},
@@ -314,6 +314,40 @@
 											"cacheSinks": {
 												"firstRowOnly": true
 											}
+										}
+									},
+									{
+										"name": "Set SourceFile",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy Delta load from Tables to ADLS",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "sourceFile",
+											"value": "@{item().Dest_Table}"
+										}
+									},
+									{
+										"name": "Set Watermark_Filed",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set SourceFile",
+												"dependencyConditions": [
+													"Completed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "WatermarkField",
+											"value": "@{item().Watermark_Column}"
 										}
 									}
 								]
@@ -482,14 +516,12 @@
 				}
 			}
 		],
-		"parameters": {
-			"DataFlowSourceTable": {
-				"type": "string",
-				"defaultValue": "@item().Dest_Table"
+		"variables": {
+			"sourceFile": {
+				"type": "String"
 			},
-			"DatFlowWaterMarkFiled": {
-				"type": "string",
-				"defaultValue": "@item().Watermark_Value"
+			"WatermarkField": {
+				"type": "String"
 			}
 		},
 		"annotations": []
