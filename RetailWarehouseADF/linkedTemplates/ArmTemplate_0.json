@@ -1122,7 +1122,7 @@
 						}
 					},
 					{
-						"name": "Filter_Sql_Files",
+						"name": "Filter_Sql_Tables",
 						"type": "Filter",
 						"dependsOn": [
 							{
@@ -1172,7 +1172,7 @@
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "Filter_Sql_Files",
+								"activity": "Filter_Sql_Tables",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1181,7 +1181,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('Filter_Sql_Files').output.value",
+								"value": "@activity('Filter_Sql_Tables').output.value",
 								"type": "Expression"
 							},
 							"isSequential": true,
@@ -1413,6 +1413,42 @@
 												}
 											}
 										]
+									}
+								},
+								{
+									"name": "update cfg status",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "If Condition Based on Type of Load",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "update dbo.config \nset Status = 'Success' where Dest_Table = '@{item().Dest_Table}'\n\nselect 1",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "ConfigTable",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
 									}
 								}
 							]
