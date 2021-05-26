@@ -5,6 +5,9 @@
 			"referenceName": "OnPremSqlServerDatabase",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "OnPremTables"
+		},
 		"annotations": [],
 		"type": "SqlServerTable",
 		"schema": [

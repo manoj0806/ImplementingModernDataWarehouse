@@ -5,6 +5,9 @@
 			"referenceName": "FlatFileLocalPc",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "FileSystemTables"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
