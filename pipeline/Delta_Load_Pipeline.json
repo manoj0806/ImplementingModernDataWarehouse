@@ -129,7 +129,8 @@
 											"dataset": {
 												"referenceName": "ConfigTable",
 												"type": "DatasetReference"
-											}
+											},
+											"firstRowOnly": false
 										}
 									},
 									{
