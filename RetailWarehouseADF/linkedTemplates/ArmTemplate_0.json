@@ -1140,7 +1140,7 @@
 							"name": "AlterRow2"
 						}
 					],
-					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nConditionalSplit1@Customer aggregate(Max_Created_Modified_Date = max(toTimestamp(toString(byName($WaterMarkField)),'dd-MM-yyyy HH:mm'))) ~> Aggregate1\nAggregate1 derive(TableName = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nsource1 split(equals($SourceTable,'Customer.csv'),\n\tequals($SourceTable,'Transactions.csv'),\n\tdisjoint: false) ~> ConditionalSplit1@(Customer, Transactions)\nConditionalSplit1@Transactions aggregate(Max_Tran_Date = max(toTimestamp(toString(byName($WaterMarkField)),'dd-MM-yyyy'))) ~> Aggregate2\nAggregate2 derive(TableName = $SourceTable) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(isNull(Max_Tran_Date)==false())) ~> AlterRow2\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1\nAlterRow2 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Tran_Date\n\t),\n\terrorHandlingOption: 'stopOnFirstError') ~> sink2"
+					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nConditionalSplit1@Customer aggregate(Max_Created_Modified_Date = max(toTimestamp(toString(byName($WaterMarkField)),'dd-MM-yyyy HH:mm'))) ~> Aggregate1\nAggregate1 derive(TableName = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nsource1 split(equals($SourceTable,'Customer.csv'),\n\tequals($SourceTable,'Transactions.csv'),\n\tdisjoint: false) ~> ConditionalSplit1@(Customer, Transactions)\nConditionalSplit1@Transactions aggregate(Max_Tran_Date = max(toTimestamp(byName(lower($WaterMarkField)),'dd-MM-yyyy'))) ~> Aggregate2\nAggregate2 derive(TableName = $SourceTable) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(isNull(Max_Tran_Date)==false())) ~> AlterRow2\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1\nAlterRow2 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Tran_Date\n\t),\n\terrorHandlingOption: 'stopOnFirstError') ~> sink2"
 				}
 			},
 			"dependsOn": [
@@ -1696,6 +1696,55 @@
 				"[concat(variables('factoryId'), '/datasets/AllFlatFiles')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSinkDataLake')]",
 				"[concat(variables('factoryId'), '/datasets/IncrementalSQLRetailOnprem')]",
+				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trial')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "UpdateConfigLastModDate",
+								"type": "DataFlowReference",
+								"parameters": {
+									"SourceTable": "'Transactions.csv'",
+									"WaterMarkField": "'tran_Date'"
+								},
+								"datasetParameters": {
+									"source1": {
+										"StagingFileName": "Transactions.csv"
+									},
+									"sink1": {},
+									"sink2": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/UpdateConfigLastModDate')]"
 			]
 		}
