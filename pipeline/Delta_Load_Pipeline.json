@@ -330,7 +330,10 @@
 										"userProperties": [],
 										"typeProperties": {
 											"variableName": "sourceFile",
-											"value": "@{item().Dest_Table}"
+											"value": {
+												"value": "@{item().Dest_Table}",
+												"type": "Expression"
+											}
 										}
 									},
 									{
@@ -347,7 +350,10 @@
 										"userProperties": [],
 										"typeProperties": {
 											"variableName": "WatermarkField",
-											"value": "@{item().Watermark_Column}"
+											"value": {
+												"value": "@{item().Watermark_Column}",
+												"type": "Expression"
+											}
 										}
 									}
 								]
