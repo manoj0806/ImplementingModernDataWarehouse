@@ -1,0 +1,41 @@
+{
+	"name": "trial",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "UpdateConfigLastModDate",
+						"type": "DataFlowReference",
+						"parameters": {
+							"SourceTable": "'Transactions.csv'",
+							"WaterMarkField": "'tran_Date'"
+						},
+						"datasetParameters": {
+							"source1": {
+								"StagingFileName": "Transactions.csv"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
