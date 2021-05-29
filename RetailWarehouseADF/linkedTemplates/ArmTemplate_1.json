@@ -13,6 +13,582 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/TransactionsTableOnPrem')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "OnPremSqlServerDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "OnPremTables"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "transaction_id",
+						"type": "varchar"
+					},
+					{
+						"name": "cust_id",
+						"type": "varchar"
+					},
+					{
+						"name": "tran_date",
+						"type": "varchar"
+					},
+					{
+						"name": "prod_subcat_code",
+						"type": "varchar"
+					},
+					{
+						"name": "prod_cat_code",
+						"type": "varchar"
+					},
+					{
+						"name": "Qty",
+						"type": "varchar"
+					},
+					{
+						"name": "Rate",
+						"type": "varchar"
+					},
+					{
+						"name": "Tax",
+						"type": "varchar"
+					},
+					{
+						"name": "total_amt",
+						"type": "varchar"
+					},
+					{
+						"name": "Store_type",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Transactions"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Full_Load_Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "CustomerTable",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "dbo.Customer"
+							},
+							{
+								"name": "Destination",
+								"value": "staging//"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".csv"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "customer_Id",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "customer_Id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DOB",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "DOB",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Gender",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Gender",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "city_code",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "city_code",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Customer_Name",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Customer_Name",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Created_Modified_Date",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Created_Modified_Date",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "CustomerTableOnprem",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Staging_All_Data",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "TransactionTable",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "CustomerTable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "dbo.Transactions"
+							},
+							{
+								"name": "Destination",
+								"value": "staging//"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".csv"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "transaction_id",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "transaction_id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cust_id",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "cust_id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "tran_date",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "tran_date",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "prod_subcat_code",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "prod_subcat_code",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "prod_cat_code",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "prod_cat_code",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Qty",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Qty",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Rate",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Rate",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Tax",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Tax",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "total_amt",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "total_amt",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Store_type",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Store_type",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "TransactionsTableOnPrem",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Staging_All_Data",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "ProductCatSubCat",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "TransactionTable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "/Product-Category-Subcategory.csv"
+							},
+							{
+								"name": "Destination",
+								"value": "staging//"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".csv"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "prod_cat_code",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "prod_cat_code",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "prod_cat",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "prod_cat",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "prod_sub_cat_code",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "prod_sub_cat_code",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "prod_subcat",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "prod_subcat",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ProductCatSubCat_FileSystem",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Staging_All_Data",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/TransactionsTableOnPrem')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DIM_Store_Type')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_Transactions",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSstagingTransactions"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimStoreType",
+								"type": "DatasetReference"
+							},
+							"name": "DimStoreType"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DimStoreType",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDimStoreType"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AggregateStores"
+						},
+						{
+							"name": "Exists1"
+						}
+					],
+					"script": "source(output(\n\t\ttransaction_id as string,\n\t\tcust_id as string,\n\t\ttran_date as string,\n\t\tprod_subcat_code as string,\n\t\tprod_cat_code as string,\n\t\tQty as string,\n\t\tRate as string,\n\t\tTax as string,\n\t\ttotal_amt as string,\n\t\tStore_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingTransactions\nsource(output(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimStoreType\nADLSstagingTransactions aggregate(groupBy(Store_type),\n\tcount = count(transaction_id)) ~> AggregateStores\nAggregateStores, DimStoreType exists(AggregateStores@Store_type == DimStoreType@Store_Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 sink(input(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tStore_Type = Store_type\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimStoreType"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Dim_Customer_SCD type 1')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -90,7 +666,7 @@
 						},
 						{
 							"dataset": {
-								"referenceName": "Dim_ProdCatSubCat",
+								"referenceName": "DimProdCatSubCat",
 								"type": "DatasetReference"
 							},
 							"name": "DimProdCatSubCat"
@@ -99,7 +675,7 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "Dim_ProdCatSubCat",
+								"referenceName": "DimProdCatSubCat",
 								"type": "DatasetReference"
 							},
 							"name": "SinkDimProdCatSubCatInsert"
@@ -818,6 +1394,50 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Dim_ProCatSubCat')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_StoreType')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Dim_StoreType",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DIM_Store_Type",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ADLSstagingTransactions": {},
+									"DimStoreType": {},
+									"SinkDimStoreType": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DIM_Store_Type')]"
 			]
 		}
 	]

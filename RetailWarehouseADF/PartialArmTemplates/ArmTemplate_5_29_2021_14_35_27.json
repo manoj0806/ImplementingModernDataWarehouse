@@ -1,0 +1,296 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RetailWarehouseADF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_StoreType')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Dim_StoreType",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DIM_Store_Type",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DIM_Store_Type')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DimProdCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Prod_Cat_SubCat_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Cat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Product_SubCat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_SubCategory",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Dim_product_Cat_SubCat"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DimStoreType')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Store_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Store_Type",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Dim_Store"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Staging_Transactions')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ADLS_Staging"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Transactions.csv",
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "transaction_id",
+						"type": "String"
+					},
+					{
+						"name": "cust_id",
+						"type": "String"
+					},
+					{
+						"name": "tran_date",
+						"type": "String"
+					},
+					{
+						"name": "prod_subcat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "Qty",
+						"type": "String"
+					},
+					{
+						"name": "Rate",
+						"type": "String"
+					},
+					{
+						"name": "Tax",
+						"type": "String"
+					},
+					{
+						"name": "total_amt",
+						"type": "String"
+					},
+					{
+						"name": "Store_type",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DIM_Store_Type')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_Transactions",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSstagingTransactions"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimStoreType",
+								"type": "DatasetReference"
+							},
+							"name": "DimStoreType"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DimStoreType",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDimStoreType"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AggregateStores"
+						},
+						{
+							"name": "Exists1"
+						}
+					],
+					"script": "source(output(\n\t\ttransaction_id as string,\n\t\tcust_id as string,\n\t\ttran_date as string,\n\t\tprod_subcat_code as string,\n\t\tprod_cat_code as string,\n\t\tQty as string,\n\t\tRate as string,\n\t\tTax as string,\n\t\ttotal_amt as string,\n\t\tStore_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingTransactions\nsource(output(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimStoreType\nADLSstagingTransactions aggregate(groupBy(Store_type),\n\tcount = count(transaction_id)) ~> AggregateStores\nAggregateStores, DimStoreType exists(AggregateStores@Store_type == DimStoreType@Store_Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 sink(input(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tStore_Type = Store_type\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimStoreType"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Staging_Transactions')]",
+				"[concat(variables('factoryId'), '/datasets/DimStoreType')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_ProCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_ProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSstagingProCatSubCat"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "DimProdCatSubCat"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DimProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDimProdCatSubCatInsert"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Exists1"
+						},
+						{
+							"name": "DerivedColumn1"
+						}
+					],
+					"script": "source(output(\n\t\tprod_cat_code as integer,\n\t\tprod_cat as string,\n\t\tprod_sub_cat_code as integer,\n\t\tprod_subcat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingProCatSubCat\nsource(output(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimProdCatSubCat\nADLSstagingProCatSubCat, DimProdCatSubCat exists(prod_cat_code == Product_Cat_Code\n\t&& prod_sub_cat_code == Product_SubCat_Code,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 derive(ProductCatCode = toInteger(prod_cat_code),\n\t\tProdSubCatCode = toInteger(prod_sub_cat_code)) ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tProduct_Cat_Code = ProductCatCode,\n\t\tProduct_Category = prod_cat,\n\t\tProduct_SubCat_Code = ProdSubCatCode,\n\t\tProduct_SubCategory = prod_subcat\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimProdCatSubCatInsert"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DimProdCatSubCat')]"
+			]
+		}
+	]
+}
