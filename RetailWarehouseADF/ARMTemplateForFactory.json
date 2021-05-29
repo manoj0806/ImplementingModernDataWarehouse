@@ -1091,7 +1091,7 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "ProductCatSubCat",
+								"referenceName": "ProductCatSubCat_FileSystem",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -1111,7 +1111,7 @@
 				"[concat(variables('factoryId'), '/datasets/CustomerTableOnprem')]",
 				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]",
 				"[concat(variables('factoryId'), '/datasets/TransactionsTableOnPrem')]",
-				"[concat(variables('factoryId'), '/datasets/ProductCatSubCat')]"
+				"[concat(variables('factoryId'), '/datasets/ProductCatSubCat_FileSystem')]"
 			]
 		},
 		{
@@ -1341,6 +1341,9 @@
 					"referenceName": "AzureSqlRetailDataWarehouse",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [
@@ -1374,6 +1377,51 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "Dim_Customer"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlRetailDataWarehouse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_ProdCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Prod_Cat_SubCat_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Cat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Product_SubCat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_SubCategory",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Dim_product_Cat_SubCat"
 				}
 			},
 			"dependsOn": [
@@ -1469,7 +1517,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ProductCatSubCat')]",
+			"name": "[concat(parameters('factoryName'), '/ProductCatSubCat_FileSystem')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1554,6 +1602,9 @@
 					"referenceName": "AzureDataLakeStaging",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "ADLS_Staging"
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
@@ -1590,6 +1641,51 @@
 					},
 					{
 						"name": "Created_Modified_Date",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Staging_ProdCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Product-Category-Subcategory.csv",
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "prod_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_cat",
+						"type": "String"
+					},
+					{
+						"name": "prod_sub_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_subcat",
 						"type": "String"
 					}
 				]
@@ -1850,6 +1946,54 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Dim_ProCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_ProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSstagingProCatSubCat"
+						},
+						{
+							"dataset": {
+								"referenceName": "Dim_ProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "DimProdCatSubCat"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Dim_ProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDimProdCatSubCatInsert"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Exists1"
+						},
+						{
+							"name": "DerivedColumn1"
+						}
+					],
+					"script": "source(output(\n\t\tprod_cat_code as integer,\n\t\tprod_cat as string,\n\t\tprod_sub_cat_code as integer,\n\t\tprod_subcat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingProCatSubCat\nsource(output(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimProdCatSubCat\nADLSstagingProCatSubCat, DimProdCatSubCat exists(prod_cat_code == Product_Cat_Code\n\t&& prod_sub_cat_code == Product_SubCat_Code,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 derive(ProductCatCode = toInteger(prod_cat_code),\n\t\tProdSubCatCode = toInteger(prod_sub_cat_code)) ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tProduct_Cat_Code = ProductCatCode,\n\t\tProduct_Category = prod_cat,\n\t\tProduct_SubCat_Code = ProdSubCatCode,\n\t\tProduct_SubCategory = prod_subcat\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimProdCatSubCatInsert"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Staging_ProdCatSubCat')]",
+				"[concat(variables('factoryId'), '/datasets/Dim_ProdCatSubCat')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/UpdateConfigLastModDate')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -1911,6 +2055,15 @@
 				"[concat(variables('factoryId'), '/datasets/DataFlowStagingInputs')]",
 				"[concat(variables('factoryId'), '/datasets/ConfigTable')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }

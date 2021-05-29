@@ -86,6 +86,15 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DataFlowStagingInputs')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -244,6 +253,9 @@
 					"referenceName": "AzureDataLakeStaging",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "ADLS_Staging"
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
@@ -280,6 +292,51 @@
 					},
 					{
 						"name": "Created_Modified_Date",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Staging_ProdCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Product-Category-Subcategory.csv",
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "prod_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_cat",
+						"type": "String"
+					},
+					{
+						"name": "prod_sub_cat_code",
+						"type": "String"
+					},
+					{
+						"name": "prod_subcat",
 						"type": "String"
 					}
 				]
@@ -532,6 +589,9 @@
 					"referenceName": "AzureSqlRetailDataWarehouse",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [
@@ -572,6 +632,51 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Dim_ProdCatSubCat')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Prod_Cat_SubCat_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Cat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Product_SubCat_Code",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Product_SubCategory",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Dim_product_Cat_SubCat"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlRetailDataWarehouse')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IncrementalSQLRetailOnprem')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -604,7 +709,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ProductCatSubCat')]",
+			"name": "[concat(parameters('factoryName'), '/ProductCatSubCat_FileSystem')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -713,604 +818,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/OnPremSqlServerDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Full_Load_Pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "CustomerTable",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "dbo.Customer"
-							},
-							{
-								"name": "Destination",
-								"value": "staging//"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".csv"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "customer_Id",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "customer_Id",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "DOB",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "DOB",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Gender",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Gender",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "city_code",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "city_code",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Customer_Name",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Customer_Name",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Created_Modified_Date",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Created_Modified_Date",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "CustomerTableOnprem",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "TransactionTable",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "CustomerTable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "dbo.Transactions"
-							},
-							{
-								"name": "Destination",
-								"value": "staging//"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".csv"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "transaction_id",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "transaction_id",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "cust_id",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "cust_id",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "tran_date",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "tran_date",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "prod_subcat_code",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "prod_subcat_code",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "prod_cat_code",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "prod_cat_code",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Qty",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Qty",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Rate",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Rate",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Tax",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Tax",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "total_amt",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "total_amt",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "Store_type",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "Store_type",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "TransactionsTableOnPrem",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "ProductCatSubCat",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "TransactionTable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "/Product-Category-Subcategory.csv"
-							},
-							{
-								"name": "Destination",
-								"value": "staging//"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "FileServerReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".csv"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "prod_cat_code",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "prod_cat_code",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "prod_cat",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "prod_cat",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "prod_sub_cat_code",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "prod_sub_cat_code",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "prod_subcat",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "prod_subcat",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ProductCatSubCat",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "Staging_All_Data",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/CustomerTableOnprem')]",
-				"[concat(variables('factoryId'), '/datasets/Staging_All_Data')]",
-				"[concat(variables('factoryId'), '/datasets/TransactionsTableOnPrem')]",
-				"[concat(variables('factoryId'), '/datasets/ProductCatSubCat')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Dim_Customer_SCD type 1')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "Staging_Customer",
-								"type": "DatasetReference"
-							},
-							"name": "ADLSstagingCustomer"
-						},
-						{
-							"dataset": {
-								"referenceName": "DimCustomerTable",
-								"type": "DatasetReference"
-							},
-							"name": "DimCustomer"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "DimCustomerTable",
-								"type": "DatasetReference"
-							},
-							"name": "SinkDimCustomer"
-						},
-						{
-							"dataset": {
-								"referenceName": "DimCustomerTable",
-								"type": "DatasetReference"
-							},
-							"name": "SinkUpdateDimCustomer"
-						}
-					],
-					"transformations": [
-						{
-							"name": "Exists"
-						},
-						{
-							"name": "DerivedColumn1"
-						},
-						{
-							"name": "Exists1"
-						},
-						{
-							"name": "DerivedColumn2"
-						},
-						{
-							"name": "AlterRow1"
-						}
-					],
-					"script": "source(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingCustomer\nsource(output(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimCustomer\nADLSstagingCustomer, DimCustomer exists(toInteger(ADLSstagingCustomer@customer_Id) == DimCustomer@customer_Id,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists\nExists derive(customerId = toInteger(customer_Id)) ~> DerivedColumn1\nADLSstagingCustomer, DimCustomer exists(toInteger(ADLSstagingCustomer@customer_Id) == DimCustomer@customer_Id,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists1\nExists1 derive(CustomerId = toInteger(customer_Id)) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(true())) ~> AlterRow1\nDerivedColumn1 sink(input(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_Id = customerId,\n\t\tcustomer_name = Customer_Name,\n\t\tDOB,\n\t\tcity_code,\n\t\tgender = Gender\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimCustomer\nAlterRow1 sink(input(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['customer_Id'],\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_Id = CustomerId,\n\t\tcustomer_name = Customer_Name,\n\t\tDOB,\n\t\tcity_code,\n\t\tgender = Gender\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkUpdateDimCustomer"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Staging_Customer')]",
-				"[concat(variables('factoryId'), '/datasets/DimCustomerTable')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/UpdateConfigLastModDate')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "DataFlowStagingInputs",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ConfigTable",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						},
-						{
-							"dataset": {
-								"referenceName": "ConfigTable",
-								"type": "DatasetReference"
-							},
-							"name": "sink2"
-						}
-					],
-					"transformations": [
-						{
-							"name": "Aggregate1"
-						},
-						{
-							"name": "DerivedColumn1"
-						},
-						{
-							"name": "AlterRow1"
-						},
-						{
-							"name": "ConditionalSplit1"
-						},
-						{
-							"name": "Aggregate2"
-						},
-						{
-							"name": "DerivedColumn2"
-						},
-						{
-							"name": "AlterRow2"
-						}
-					],
-					"script": "parameters{\n\tSourceTable as string,\n\tWaterMarkField as string\n}\nsource(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($SourceTable)]) ~> source1\nConditionalSplit1@Customer aggregate(Max_Created_Modified_Date = max(toTimestamp(toString(byName($WaterMarkField)),'dd-MM-yyyy HH:mm'))) ~> Aggregate1\nAggregate1 derive(TableName = $SourceTable) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Max_Created_Modified_Date)==false())) ~> AlterRow1\nsource1 split(equals($SourceTable,'Customer.csv'),\n\tequals($SourceTable,'Transactions.csv'),\n\tdisjoint: false) ~> ConditionalSplit1@(Customer, Transactions)\nConditionalSplit1@Transactions aggregate(Max_Tran_Date = max(toTimestamp(byName(lower($WaterMarkField)),'dd-MM-yyyy'))) ~> Aggregate2\nAggregate2 derive(TableName = $SourceTable) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(isNull(Max_Tran_Date)==false())) ~> AlterRow2\nAlterRow1 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Created_Modified_Date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1\nAlterRow2 sink(input(\n\t\tSource as string,\n\t\tSource_Table as string,\n\t\tDest_Table as string,\n\t\tColumns as string,\n\t\tWatermark_Column as string,\n\t\tWatermark_Value as timestamp,\n\t\tEnabled as boolean,\n\t\tLoad_Flag as string,\n\t\tStatus as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_Table'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_Table = TableName,\n\t\tWatermark_Value = Max_Tran_Date\n\t),\n\terrorHandlingOption: 'stopOnFirstError') ~> sink2"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DataFlowStagingInputs')]",
-				"[concat(variables('factoryId'), '/datasets/ConfigTable')]"
 			]
 		}
 	]
