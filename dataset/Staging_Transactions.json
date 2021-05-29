@@ -5,6 +5,9 @@
 			"referenceName": "AzureDataLakeStaging",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "ADLS_Staging"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
