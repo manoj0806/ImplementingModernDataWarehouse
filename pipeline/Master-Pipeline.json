@@ -1,0 +1,41 @@
+{
+	"name": "Master-Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Onprem To Staging Delta Copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Delta_Load_Pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Staging To Warehouse",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Onprem To Staging Delta Copy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Sub-Master-Pipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}

@@ -1,0 +1,82 @@
+{
+	"name": "Sub-Master-Pipeline",
+	"properties": {
+		"description": "Pipeline to load data from OnPrem and FileSystem to Azure Data Lake Storage as staging tables. Then the data is loaded to Fact and dimension tables in Datawarehouse.",
+		"activities": [
+			{
+				"name": "Dim Customer",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Dim_CustomerSCDtype1",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Dim ProdCatSubCat",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Dim Customer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Dim_ProductCatSubCat_incremental",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Dim Store",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Dim ProdCatSubCat",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Dim_StoreType",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Transactions",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Dim Store",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Fact_Transactions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}
