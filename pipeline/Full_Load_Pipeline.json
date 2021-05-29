@@ -440,7 +440,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "ProductCatSubCat",
+						"referenceName": "ProductCatSubCat_FileSystem",
 						"type": "DatasetReference"
 					}
 				],

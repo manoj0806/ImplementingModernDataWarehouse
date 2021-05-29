@@ -1,0 +1,42 @@
+{
+	"name": "Dim_ProCatSubCat",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Staging_ProdCatSubCat",
+						"type": "DatasetReference"
+					},
+					"name": "ADLSstagingProCatSubCat"
+				},
+				{
+					"dataset": {
+						"referenceName": "Dim_ProdCatSubCat",
+						"type": "DatasetReference"
+					},
+					"name": "DimProdCatSubCat"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Dim_ProdCatSubCat",
+						"type": "DatasetReference"
+					},
+					"name": "SinkDimProdCatSubCatInsert"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Exists1"
+				},
+				{
+					"name": "DerivedColumn1"
+				}
+			],
+			"script": "source(output(\n\t\tprod_cat_code as integer,\n\t\tprod_cat as string,\n\t\tprod_sub_cat_code as integer,\n\t\tprod_subcat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingProCatSubCat\nsource(output(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimProdCatSubCat\nADLSstagingProCatSubCat, DimProdCatSubCat exists(prod_cat_code == Product_Cat_Code\n\t&& prod_sub_cat_code == Product_SubCat_Code,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 derive(ProductCatCode = toInteger(prod_cat_code),\n\t\tProdSubCatCode = toInteger(prod_sub_cat_code)) ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tProduct_Cat_Code = ProductCatCode,\n\t\tProduct_Category = prod_cat,\n\t\tProduct_SubCat_Code = ProdSubCatCode,\n\t\tProduct_SubCategory = prod_subcat\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimProdCatSubCatInsert"
+		}
+	}
+}

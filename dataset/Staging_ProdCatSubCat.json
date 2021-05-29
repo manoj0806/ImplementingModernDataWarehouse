@@ -1,19 +1,17 @@
 {
-	"name": "ProductCatSubCat_FileSystem",
+	"name": "Staging_ProdCatSubCat",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "FlatFileLocalPc",
+			"referenceName": "AzureDataLakeStaging",
 			"type": "LinkedServiceReference"
-		},
-		"folder": {
-			"name": "FileSystemTables"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "FileServerLocation",
-				"fileName": "Product-Category-Subcategory.csv"
+				"type": "AzureBlobFSLocation",
+				"fileName": "Product-Category-Subcategory.csv",
+				"fileSystem": "staging"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",

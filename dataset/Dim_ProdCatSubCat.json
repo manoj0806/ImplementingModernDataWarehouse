@@ -1,0 +1,40 @@
+{
+	"name": "Dim_ProdCatSubCat",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlRetailDataWarehouse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Prod_Cat_SubCat_Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Product_Cat_Code",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Product_Category",
+				"type": "varchar"
+			},
+			{
+				"name": "Product_SubCat_Code",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Product_SubCategory",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Dim_product_Cat_SubCat"
+		}
+	}
+}
