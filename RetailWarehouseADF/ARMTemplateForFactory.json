@@ -1259,7 +1259,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Onprem To Staging Delta Copy",
+						"name": "Onprem To ADLS Staging Delta Copy",
 						"type": "ExecutePipeline",
 						"dependsOn": [],
 						"userProperties": [],
@@ -1277,7 +1277,7 @@
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Onprem To Staging Delta Copy",
+								"activity": "Onprem To ADLS Staging Delta Copy",
 								"dependencyConditions": [
 									"Succeeded"
 								]
