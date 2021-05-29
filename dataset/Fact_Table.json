@@ -1,0 +1,62 @@
+{
+	"name": "Fact_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlRetailDataWarehouse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Fact_Tran_Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "customer_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Prod_Cat_SubCat_Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Store_Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "tran_date",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "rate",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "tax",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "total_amount",
+				"type": "float",
+				"precision": 15
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Fact_Transactions"
+		}
+	}
+}
