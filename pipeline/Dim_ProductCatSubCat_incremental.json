@@ -1,9 +1,9 @@
 {
-	"name": "Dim_CustomerSCDtype1",
+	"name": "Dim_ProductCatSubCat_incremental",
 	"properties": {
 		"activities": [
 			{
-				"name": "Dim_Customer",
+				"name": "Dim_ProdCatSubCat",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "Dim_Customer_SCD type 1",
+						"referenceName": "Dim_ProCatSubCat",
 						"type": "DataFlowReference"
 					},
 					"compute": {
