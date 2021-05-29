@@ -13,7 +13,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "Dim_ProdCatSubCat",
+						"referenceName": "DimProdCatSubCat",
 						"type": "DatasetReference"
 					},
 					"name": "DimProdCatSubCat"
@@ -22,7 +22,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "Dim_ProdCatSubCat",
+						"referenceName": "DimProdCatSubCat",
 						"type": "DatasetReference"
 					},
 					"name": "SinkDimProdCatSubCatInsert"

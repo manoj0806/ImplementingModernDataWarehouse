@@ -1,0 +1,42 @@
+{
+	"name": "DIM_Store_Type",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Staging_Transactions",
+						"type": "DatasetReference"
+					},
+					"name": "ADLSstagingTransactions"
+				},
+				{
+					"dataset": {
+						"referenceName": "DimStoreType",
+						"type": "DatasetReference"
+					},
+					"name": "DimStoreType"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DimStoreType",
+						"type": "DatasetReference"
+					},
+					"name": "SinkDimStoreType"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AggregateStores"
+				},
+				{
+					"name": "Exists1"
+				}
+			],
+			"script": "source(output(\n\t\ttransaction_id as string,\n\t\tcust_id as string,\n\t\ttran_date as string,\n\t\tprod_subcat_code as string,\n\t\tprod_cat_code as string,\n\t\tQty as string,\n\t\tRate as string,\n\t\tTax as string,\n\t\ttotal_amt as string,\n\t\tStore_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingTransactions\nsource(output(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimStoreType\nADLSstagingTransactions aggregate(groupBy(Store_type),\n\tcount = count(transaction_id)) ~> AggregateStores\nAggregateStores, DimStoreType exists(AggregateStores@Store_type == DimStoreType@Store_Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists1\nExists1 sink(input(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tStore_Type = Store_type\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimStoreType"
+		}
+	}
+}

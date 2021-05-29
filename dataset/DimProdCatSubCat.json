@@ -1,5 +1,5 @@
 {
-	"name": "Dim_ProdCatSubCat",
+	"name": "DimProdCatSubCat",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlRetailDataWarehouse",

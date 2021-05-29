@@ -1,0 +1,26 @@
+{
+	"name": "DimStoreType",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlRetailDataWarehouse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Store_Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Store_Type",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Dim_Store"
+		}
+	}
+}
