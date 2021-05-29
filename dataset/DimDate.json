@@ -5,6 +5,9 @@
 			"referenceName": "AzureSqlRetailDataWarehouse",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "Warehouse_Tables"
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [
