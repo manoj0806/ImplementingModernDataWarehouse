@@ -602,7 +602,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Customer_Dim",
+						"name": "Dim_Customer",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -641,6 +641,53 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Dim_Customer_SCD type 1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_ProductCatSubCat_incremental')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Dim_ProdCatSubCat",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dim_ProCatSubCat",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ADLSstagingProCatSubCat": {},
+									"DimProdCatSubCat": {},
+									"SinkDimProdCatSubCatInsert": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Dim_ProCatSubCat')]"
 			]
 		},
 		{
@@ -1392,6 +1439,9 @@
 					"referenceName": "AzureSqlRetailDataWarehouse",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Warehouse_Tables"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [
@@ -1657,6 +1707,9 @@
 				"linkedServiceName": {
 					"referenceName": "AzureDataLakeStaging",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ADLS_Staging"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -2055,15 +2108,6 @@
 				"[concat(variables('factoryId'), '/datasets/DataFlowStagingInputs')]",
 				"[concat(variables('factoryId'), '/datasets/ConfigTable')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
 		}
 	]
 }
