@@ -1635,6 +1635,149 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Fact_Transactions')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sub-Master-Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline to load data from OnPrem and FileSystem to Azure Data Lake Storage as staging tables. Then the data is loaded to Fact and dimension tables in Datawarehouse.",
+				"activities": [
+					{
+						"name": "Dim Customer",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Dim_CustomerSCDtype1",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Dim ProdCatSubCat",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Dim Customer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Dim_ProductCatSubCat_incremental",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Dim Store",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Dim ProdCatSubCat",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Dim_StoreType",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Fact Transactions",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Dim Store",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Fact_Transactions",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Dim_CustomerSCDtype1')]",
+				"[concat(variables('factoryId'), '/pipelines/Dim_ProductCatSubCat_incremental')]",
+				"[concat(variables('factoryId'), '/pipelines/Dim_StoreType')]",
+				"[concat(variables('factoryId'), '/pipelines/Fact_Transactions')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Master-Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Onprem To Staging Delta Copy",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Delta_Load_Pipeline",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Staging To Warehouse",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Onprem To Staging Delta Copy",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Sub-Master-Pipeline",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Delta_Load_Pipeline')]",
+				"[concat(variables('factoryId'), '/pipelines/Sub-Master-Pipeline')]"
+			]
 		}
 	]
 }
