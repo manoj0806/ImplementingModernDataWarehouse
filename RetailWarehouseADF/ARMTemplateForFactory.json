@@ -1475,6 +1475,173 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DimDate')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DateKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Date",
+						"type": "date"
+					},
+					{
+						"name": "FullDateUK",
+						"type": "char"
+					},
+					{
+						"name": "FullDateUSA",
+						"type": "char"
+					},
+					{
+						"name": "DayOfMonth",
+						"type": "varchar"
+					},
+					{
+						"name": "DaySuffix",
+						"type": "varchar"
+					},
+					{
+						"name": "DayName",
+						"type": "varchar"
+					},
+					{
+						"name": "DayOfWeekUSA",
+						"type": "char"
+					},
+					{
+						"name": "DayOfWeekUK",
+						"type": "char"
+					},
+					{
+						"name": "DayOfWeekInMonth",
+						"type": "varchar"
+					},
+					{
+						"name": "DayOfWeekInYear",
+						"type": "varchar"
+					},
+					{
+						"name": "DayOfQuarter",
+						"type": "varchar"
+					},
+					{
+						"name": "DayOfYear",
+						"type": "varchar"
+					},
+					{
+						"name": "WeekOfMonth",
+						"type": "varchar"
+					},
+					{
+						"name": "WeekOfQuarter",
+						"type": "varchar"
+					},
+					{
+						"name": "WeekOfYear",
+						"type": "varchar"
+					},
+					{
+						"name": "Month",
+						"type": "varchar"
+					},
+					{
+						"name": "MonthName",
+						"type": "varchar"
+					},
+					{
+						"name": "MonthOfQuarter",
+						"type": "varchar"
+					},
+					{
+						"name": "Quarter",
+						"type": "char"
+					},
+					{
+						"name": "QuarterName",
+						"type": "varchar"
+					},
+					{
+						"name": "Year",
+						"type": "char"
+					},
+					{
+						"name": "YearName",
+						"type": "char"
+					},
+					{
+						"name": "MonthYear",
+						"type": "char"
+					},
+					{
+						"name": "MMYYYY",
+						"type": "char"
+					},
+					{
+						"name": "FirstDayOfMonth",
+						"type": "date"
+					},
+					{
+						"name": "LastDayOfMonth",
+						"type": "date"
+					},
+					{
+						"name": "FirstDayOfQuarter",
+						"type": "date"
+					},
+					{
+						"name": "LastDayOfQuarter",
+						"type": "date"
+					},
+					{
+						"name": "FirstDayOfYear",
+						"type": "date"
+					},
+					{
+						"name": "LastDayOfYear",
+						"type": "date"
+					},
+					{
+						"name": "IsHolidayUSA",
+						"type": "bit"
+					},
+					{
+						"name": "IsWeekday",
+						"type": "bit"
+					},
+					{
+						"name": "HolidayUSA",
+						"type": "varchar"
+					},
+					{
+						"name": "IsHolidayUK",
+						"type": "bit"
+					},
+					{
+						"name": "HolidayUK",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "DimDate"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlRetailDataWarehouse')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DimProdCatSubCat')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1550,6 +1717,73 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "Dim_Store"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlRetailDataWarehouse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Fact_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Fact_Tran_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Prod_Cat_SubCat_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Store_Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tran_date",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Quantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "rate",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "tax",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "total_amount",
+						"type": "float",
+						"precision": 15
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Fact_Transactions"
 				}
 			},
 			"dependsOn": [
@@ -2242,6 +2476,85 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/Staging_ProdCatSubCat')]",
 				"[concat(variables('factoryId'), '/datasets/DimProdCatSubCat')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Fact_Transactions')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_Transactions",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSStagingTransactions"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimCustomerTable",
+								"type": "DatasetReference"
+							},
+							"name": "DimCustomer"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimProdCatSubCat",
+								"type": "DatasetReference"
+							},
+							"name": "DimProdCatSubCat"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimStoreType",
+								"type": "DatasetReference"
+							},
+							"name": "DimStoreType"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimDate",
+								"type": "DatasetReference"
+							},
+							"name": "DimDate"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Fact_Table",
+								"type": "DatasetReference"
+							},
+							"name": "SinkFactTable"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinTransactionCustomer"
+						},
+						{
+							"name": "JoinProductCatSubCat"
+						},
+						{
+							"name": "JoinDimDate"
+						},
+						{
+							"name": "JoinDimStore"
+						}
+					],
+					"script": "source(output(\n\t\ttransaction_id as integer,\n\t\tcust_id as integer,\n\t\ttran_date as string,\n\t\tprod_subcat_code as integer,\n\t\tprod_cat_code as integer,\n\t\tQty as integer,\n\t\tRate as float,\n\t\tTax as float,\n\t\ttotal_amt as float,\n\t\tStore_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSStagingTransactions\nsource(output(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimCustomer\nsource(output(\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tProduct_Cat_Code as integer,\n\t\tProduct_Category as string,\n\t\tProduct_SubCat_Code as integer,\n\t\tProduct_SubCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimProdCatSubCat\nsource(output(\n\t\tStore_Key as integer,\n\t\tStore_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimStoreType\nsource(output(\n\t\tDateKey as integer,\n\t\tDate as date,\n\t\tFullDateUK as string,\n\t\tFullDateUSA as string,\n\t\tDayOfMonth as string,\n\t\tDaySuffix as string,\n\t\tDayName as string,\n\t\tDayOfWeekUSA as string,\n\t\tDayOfWeekUK as string,\n\t\tDayOfWeekInMonth as string,\n\t\tDayOfWeekInYear as string,\n\t\tDayOfQuarter as string,\n\t\tDayOfYear as string,\n\t\tWeekOfMonth as string,\n\t\tWeekOfQuarter as string,\n\t\tWeekOfYear as string,\n\t\tMonth as string,\n\t\tMonthName as string,\n\t\tMonthOfQuarter as string,\n\t\tQuarter as string,\n\t\tQuarterName as string,\n\t\tYear as string,\n\t\tYearName as string,\n\t\tMonthYear as string,\n\t\tMMYYYY as string,\n\t\tFirstDayOfMonth as date,\n\t\tLastDayOfMonth as date,\n\t\tFirstDayOfQuarter as date,\n\t\tLastDayOfQuarter as date,\n\t\tFirstDayOfYear as date,\n\t\tLastDayOfYear as date,\n\t\tIsHolidayUSA as boolean,\n\t\tIsWeekday as boolean,\n\t\tHolidayUSA as string,\n\t\tIsHolidayUK as boolean,\n\t\tHolidayUK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimDate\nADLSStagingTransactions, DimCustomer join(cust_id == customer_Id,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinTransactionCustomer\nJoinTransactionCustomer, DimProdCatSubCat join(prod_cat_code == Product_Cat_Code\n\t&& prod_subcat_code == Product_SubCat_Code,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinProductCatSubCat\nJoinProductCatSubCat, DimDate join(toDate(tran_date,'dd-MM-yyyy') == Date,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinDimDate\nJoinDimDate, DimStoreType join(ADLSStagingTransactions@Store_type == DimStoreType@Store_Type,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinDimStore\nJoinDimStore sink(input(\n\t\tFact_Tran_Key as integer,\n\t\tcustomer_key as integer,\n\t\tProd_Cat_SubCat_Key as integer,\n\t\tStore_Key as integer,\n\t\ttran_date as integer,\n\t\tQuantity as integer,\n\t\trate as double,\n\t\ttax as double,\n\t\ttotal_amount as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_key,\n\t\tProd_Cat_SubCat_Key,\n\t\tStore_Key,\n\t\ttran_date = DateKey,\n\t\tQuantity = Qty,\n\t\trate = Rate,\n\t\ttax = Tax,\n\t\ttotal_amount = total_amt\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkFactTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Staging_Transactions')]",
+				"[concat(variables('factoryId'), '/datasets/DimCustomerTable')]",
+				"[concat(variables('factoryId'), '/datasets/DimProdCatSubCat')]",
+				"[concat(variables('factoryId'), '/datasets/DimStoreType')]",
+				"[concat(variables('factoryId'), '/datasets/DimDate')]",
+				"[concat(variables('factoryId'), '/datasets/Fact_Table')]"
 			]
 		},
 		{
