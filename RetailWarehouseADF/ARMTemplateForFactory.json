@@ -596,6 +596,54 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Dim_CustomerSCDtype1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Customer_Dim",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dim_Customer_SCD type 1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ADLSstagingCustomer": {},
+									"DimCustomer": {},
+									"SinkDimCustomer": {},
+									"SinkUpdateDimCustomer": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Dim_Customer_SCD type 1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Full_Load_Pipeline')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -1285,6 +1333,54 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DimCustomerTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlRetailDataWarehouse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "customer_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_name",
+						"type": "varchar"
+					},
+					{
+						"name": "DOB",
+						"type": "varchar"
+					},
+					{
+						"name": "city_code",
+						"type": "varchar"
+					},
+					{
+						"name": "gender",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Dim_Customer"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlRetailDataWarehouse')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IncrementalSQLRetailOnprem')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1444,6 +1540,59 @@
 					"quoteChar": "\""
 				},
 				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Staging_Customer')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStaging",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Customer.csv",
+						"fileSystem": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customer_Id",
+						"type": "String"
+					},
+					{
+						"name": "DOB",
+						"type": "String"
+					},
+					{
+						"name": "Gender",
+						"type": "String"
+					},
+					{
+						"name": "city_code",
+						"type": "String"
+					},
+					{
+						"name": "Customer_Name",
+						"type": "String"
+					},
+					{
+						"name": "Created_Modified_Date",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStaging')]"
@@ -1635,6 +1784,70 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim_Customer_SCD type 1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Staging_Customer",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSstagingCustomer"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimCustomerTable",
+								"type": "DatasetReference"
+							},
+							"name": "DimCustomer"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DimCustomerTable",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDimCustomer"
+						},
+						{
+							"dataset": {
+								"referenceName": "DimCustomerTable",
+								"type": "DatasetReference"
+							},
+							"name": "SinkUpdateDimCustomer"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Exists"
+						},
+						{
+							"name": "DerivedColumn1"
+						},
+						{
+							"name": "Exists1"
+						},
+						{
+							"name": "DerivedColumn2"
+						},
+						{
+							"name": "AlterRow1"
+						}
+					],
+					"script": "source(output(\n\t\tcustomer_Id as string,\n\t\tDOB as string,\n\t\tGender as string,\n\t\tcity_code as string,\n\t\tCustomer_Name as string,\n\t\tCreated_Modified_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ADLSstagingCustomer\nsource(output(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> DimCustomer\nADLSstagingCustomer, DimCustomer exists(toInteger(ADLSstagingCustomer@customer_Id) == DimCustomer@customer_Id,\n\tnegate:true,\n\tbroadcast: 'auto')~> Exists\nExists derive(customerId = toInteger(customer_Id)) ~> DerivedColumn1\nADLSstagingCustomer, DimCustomer exists(toInteger(ADLSstagingCustomer@customer_Id) == DimCustomer@customer_Id,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists1\nExists1 derive(CustomerId = toInteger(customer_Id)) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(true())) ~> AlterRow1\nDerivedColumn1 sink(input(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_Id = customerId,\n\t\tcustomer_name = Customer_Name,\n\t\tDOB,\n\t\tcity_code,\n\t\tgender = Gender\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkDimCustomer\nAlterRow1 sink(input(\n\t\tcustomer_key as integer,\n\t\tcustomer_Id as integer,\n\t\tcustomer_name as string,\n\t\tDOB as string,\n\t\tcity_code as string,\n\t\tgender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['customer_Id'],\n\tformat: 'table',\n\tmapColumn(\n\t\tcustomer_Id = CustomerId,\n\t\tcustomer_name = Customer_Name,\n\t\tDOB,\n\t\tcity_code,\n\t\tgender = Gender\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinkUpdateDimCustomer"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Staging_Customer')]",
+				"[concat(variables('factoryId'), '/datasets/DimCustomerTable')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/UpdateConfigLastModDate')]",
