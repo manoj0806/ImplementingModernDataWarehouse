@@ -1133,7 +1133,7 @@
 													"source": {
 														"type": "SqlServerSource",
 														"sqlReaderQuery": {
-															"value": "select * from @{item().Source_Table}\nwhere \nconvert(datetime,@{item().Watermark_Column},105) >\nconvert(datetime,substring(\nreplace('@{activity('get max of Last MaxUpdateDate Config').output.firstRow.Watermark_Value}',\n'T',' '),0,20),120)",
+															"value": "select * from @{item().Source_Table}\nwhere \nconvert(datetime,CAST(@{item().Watermark_Column} AS varchar),105) >\nconvert(datetime,substring(\nreplace('@{activity('get max of Last MaxUpdateDate Config').output.firstRow.Watermark_Value}',\n'T',' '),0,20),120)\n",
 															"type": "Expression"
 														},
 														"queryTimeout": "02:00:00",
