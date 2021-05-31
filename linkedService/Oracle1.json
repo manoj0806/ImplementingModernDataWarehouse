@@ -1,0 +1,23 @@
+{
+	"name": "Oracle1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=localhost;port=1521;sid=orcl;user id=System",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "OnPremDevicePassword"
+			}
+		},
+		"connectVia": {
+			"referenceName": "HomePc-Self-HostedIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
