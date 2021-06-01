@@ -1721,7 +1721,10 @@
 														"referenceName": "IncrementalSinkDataLake",
 														"type": "DatasetReference",
 														"parameters": {
-															"StagingFileName": "@variables('OracleTable')"
+															"StagingFileName": {
+																"value": "@item().Dest_Table",
+																"type": "Expression"
+															}
 														}
 													}
 												]
