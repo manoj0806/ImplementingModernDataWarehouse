@@ -520,6 +520,206 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Filter Oracle Tables",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Config').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().Source,'OracleVM')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEachOracleTables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter Oracle Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter Oracle Tables').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@bool(equals(item().Load_Flag,'Incremental'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "get max of Last MaxUpdateDate Config_copy1",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "select Watermark_Value from dbo.config where Source_Table like '@{item().Source_Table}'",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "ConfigTable",
+												"type": "DatasetReference"
+											},
+											"firstRowOnly": true
+										}
+									},
+									{
+										"name": "set_oracleschema",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "get max of Last MaxUpdateDate Config_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "OracleSchemTable",
+											"value": {
+												"value": "@item().Source_Table",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "set_oracleTable",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "set_oracleschema",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "OracleTable",
+											"value": {
+												"value": "@substring(variables('OracleSchemTable'),7,sub(length(variables('OracleSchemTable')),7))",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Copy data2",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "set_oracleTable",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "OracleSource",
+												"oracleReaderQuery": {
+													"value": "select * from @{item().Source_Table} where \nto_date(@{item().Watermark_Column},'DD-MM-YYYY')>\nto_date(substr('@{activity('get max of Last MaxUpdateDate Config_copy1').output.firstrow.Watermark_Value}',1,10),'YYYY-MM-DD');",
+													"type": "Expression"
+												},
+												"partitionOption": "None",
+												"queryTimeout": "02:00:00"
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ""
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "OnPremOracleProducts",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table": {
+														"value": "@variables('OracleTable')",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "IncrementalSinkDataLake",
+												"type": "DatasetReference",
+												"parameters": {
+													"StagingFileName": "@variables('OracleTable')"
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
 			}
 		],
 		"variables": {
@@ -527,6 +727,12 @@
 				"type": "String"
 			},
 			"WatermarkField": {
+				"type": "String"
+			},
+			"OracleSchemTable": {
+				"type": "String"
+			},
+			"OracleTable": {
 				"type": "String"
 			}
 		},
