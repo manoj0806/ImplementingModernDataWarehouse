@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'OnPremSqlServerDatabase'"
 		},
+		"Oracle1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Oracle1'"
+		},
 		"AzureDataLakeStaging_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://retailstaging.dfs.core.windows.net"
@@ -74,6 +78,9 @@
 					},
 					"OnPremSqlServerDatabase_connectionString": {
 						"value": "[parameters('OnPremSqlServerDatabase_connectionString')]"
+					},
+					"Oracle1_connectionString": {
+						"value": "[parameters('Oracle1_connectionString')]"
 					},
 					"AzureDataLakeStaging_properties_typeProperties_url": {
 						"value": "[parameters('AzureDataLakeStaging_properties_typeProperties_url')]"
