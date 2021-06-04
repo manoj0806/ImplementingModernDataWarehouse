@@ -10,6 +10,9 @@
 				"type": "String"
 			}
 		},
+		"folder": {
+			"name": "OnPremTables"
+		},
 		"annotations": [],
 		"type": "OracleTable",
 		"schema": [],
