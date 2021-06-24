@@ -981,7 +981,9 @@
 						}
 					}
 				],
-				"annotations": []
+				"annotations": [
+					"dw"
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/DIM_Store_Type')]"
