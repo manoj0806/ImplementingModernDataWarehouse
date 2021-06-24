@@ -774,6 +774,8 @@
 				"type": "String"
 			}
 		},
-		"annotations": []
+		"annotations": [
+			"pdl"
+		]
 	}
 }
