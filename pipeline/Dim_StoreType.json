@@ -27,6 +27,8 @@
 				}
 			}
 		],
-		"annotations": []
+		"annotations": [
+			"dw"
+		]
 	}
 }
