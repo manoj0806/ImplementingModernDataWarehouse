@@ -1,0 +1,9 @@
+{
+	"name": "RetaiADF",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "a8d2ae90-f128-4c0a-a063-b0414f46f88b",
+		"tenantId": "a7ca1a43-f9a5-4296-8b05-877c2168da45"
+	}
+}
