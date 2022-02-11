@@ -1,0 +1,9 @@
+{
+	"name": "Testing1234Manoj",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c5a3ebc0-cf66-43f8-8052-f83b6fef41c9",
+		"tenantId": "bbe4184d-9103-4afd-a3f3-8cd31e4d7250"
+	}
+}
